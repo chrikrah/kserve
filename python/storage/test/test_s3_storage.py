@@ -828,6 +828,26 @@ def test_s3_allow_patterns(mock_storage):
 
 
 @mock.patch("boto3.resource")
+def test_s3_ignore_directory_pattern(mock_storage):
+    bucket_name = "foo"
+    object_paths = [
+        "model/weights.safetensors",
+        "model/original/consolidated.pth",
+    ]
+    mock_boto3_bucket = create_mock_boto3_bucket(mock_storage, object_paths)
+
+    Storage._download_s3(
+        f"s3://{bucket_name}/model",
+        "dest_path",
+        ignore_patterns=["original/"],
+    )
+
+    arg_list = get_call_args(mock_boto3_bucket.download_file.call_args_list)
+    downloaded_keys = [a[0] for a in arg_list]
+    assert downloaded_keys == ["model/weights.safetensors"]
+
+
+@mock.patch("boto3.resource")
 def test_s3_ignore_patterns(mock_storage):
     bucket_name = "foo"
     object_paths = [

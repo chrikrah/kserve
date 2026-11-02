@@ -382,14 +382,22 @@ def _should_download(
         True if the file should be downloaded, False otherwise.
     """
     if allow_patterns is not None and len(allow_patterns) > 0:
-        if not any(fnmatch.fnmatch(relative_path, p) for p in allow_patterns):
+        if not any(_fnmatch_path(relative_path, p) for p in allow_patterns):
             return False
 
     if ignore_patterns is not None and len(ignore_patterns) > 0:
-        if any(fnmatch.fnmatch(relative_path, p) for p in ignore_patterns):
+        if any(_fnmatch_path(relative_path, p) for p in ignore_patterns):
             return False
 
     return True
+
+
+def _fnmatch_path(relative_path: str, pattern: str) -> bool:
+    # Like huggingface_hub, a pattern ending in "/" names a directory and
+    # matches everything below it.
+    if pattern.endswith("/"):
+        pattern += "*"
+    return fnmatch.fnmatch(relative_path, pattern)
 
 
 def _parse_patterns_from_env(env_var_name: str) -> Optional[List[str]]:

@@ -825,6 +825,15 @@ class TestShouldDownload:
             is False
         )
 
+    def test_directory_pattern_matches_contents(self):
+        # huggingface_hub.snapshot_download treats "subdir/" as "subdir/*"
+        assert _should_download("subdir/model.bin", allow_patterns=["subdir/"]) is True
+        assert _should_download("subdir/a/b.json", allow_patterns=["subdir/"]) is True
+        assert _should_download("model.bin", allow_patterns=["subdir/"]) is False
+        assert (
+            _should_download("subdir/model.bin", ignore_patterns=["subdir/"]) is False
+        )
+
     def test_empty_patterns_treated_as_none(self):
         assert _should_download("model.bin", allow_patterns=[]) is True
         assert _should_download("model.bin", ignore_patterns=[]) is True
